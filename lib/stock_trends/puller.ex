@@ -83,5 +83,4 @@ defmodule StockTrends.Puller do
     IO.puts("Got #{trend_type} trend for: #{ticker}")
     data
   end
-
 end

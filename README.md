@@ -1,20 +1,6 @@
 # StockTrends
 
-To start your Phoenix server:
+Evaluates stock trends daily and save it to database.
 
-  * Install dependencies with `mix deps.get`
-  * Create and migrate your database with `mix ecto.setup`
-  * Install Node.js dependencies with `npm install` inside the `assets` directory
-  * Start Phoenix endpoint with `mix phx.server`
-
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
-
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+1. Backend task pulls and aggregates financial data for tickers in CSV file which is downloaded from nasdaq official ftp, evaluates it against several strategies to get the trend, and if trend is found then saves it to database.
+2. UI is under construction yet. List tickers by trends and date. Show ticker financial aggregated data.
