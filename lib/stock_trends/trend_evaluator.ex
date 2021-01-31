@@ -19,7 +19,8 @@ defmodule StockTrends.TrendEvaluator do
     data.total_debt * 3 >= data.enterprise_value and
     data.earnings_history_surprise_percent_current_qr < 0 and
     data.earnings_history_surprise_percent_minus_1_qr < 0 and
-    data.earnings_history_surprise_percent_minus_2_qr < 0,
+    data.earnings_history_surprise_percent_minus_2_qr < 0 and
+    data.earnings_history_surprise_percent_minus_3_qr < 0,
     do: "short"
 
   def call(%TickerData{}), do: nil

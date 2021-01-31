@@ -30,6 +30,8 @@ defmodule StockTrends.Puller do
 
     get_yahoo_ticker(ticker)
     |> transform_yahoo_response(ticker)
+    |> apply_zacks_rank
+    |> apply_gurufocus_score
     |> evaluate_and_populate_trend
     |> log_trend_found
     |> save_trend
@@ -63,6 +65,43 @@ defmodule StockTrends.Puller do
     }
   end
 
+  # Zacks rank processing
+  defp apply_zacks_rank(%TickerData{ticker: nil}), do: %TickerData{}
+
+  defp apply_zacks_rank(%TickerData{ticker: ticker} = ticker_data) do
+    get_zacks_rank(ticker)
+    |> add_zacks_rank(ticker_data)
+  end
+
+  defp get_zacks_rank(ticker) do
+    StockTrends.ZacksApi.get_rank(ticker)
+  end
+
+  defp add_zacks_rank({:error, _}, _), do: %TickerData{}
+
+  defp add_zacks_rank({:ok, %{zacks_rank: zacks_rank, zacks_style_scores: zacks_style_scores}}, ticker_data) do
+    %TickerData{ticker_data| zacks_rank: zacks_rank, zacks_style_scores: zacks_style_scores}
+  end
+
+  # Gurufocus processing
+  defp apply_gurufocus_score(%TickerData{ticker: nil}), do: %TickerData{}
+
+  defp apply_gurufocus_score(%TickerData{ticker: ticker} = ticker_data) do
+    get_gurufocus_score(ticker)
+    |> add_gurufocus_score(ticker_data)
+  end
+
+  defp get_gurufocus_score(ticker) do
+    StockTrends.GurufocusApi.get_score(ticker)
+  end
+
+  defp add_gurufocus_score({:error, _}, _), do: %TickerData{}
+
+  defp add_gurufocus_score({:ok, %{financial_strength: financial_strength, profitability_rank: profitability_rank}}, ticker_data) do
+    %TickerData{ticker_data| gurufocus_financial_strength: financial_strength, gurufocus_profitability_rank: profitability_rank}
+  end
+
+  # Trend evaluation
   defp evaluate_and_populate_trend(%TickerData{ticker: nil}), do: %TickerData{}
 
   defp evaluate_and_populate_trend(%TickerData{} = ticker_data) do
