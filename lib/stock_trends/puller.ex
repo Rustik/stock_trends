@@ -32,6 +32,7 @@ defmodule StockTrends.Puller do
     |> transform_yahoo_response(ticker)
     |> filter_fundamential_data
     |> apply_zacks_rank
+    |> filter_zacks_data
     |> apply_gurufocus_score
     |> evaluate_and_populate_trend
     |> log_trend_found
@@ -74,7 +75,12 @@ defmodule StockTrends.Puller do
   defp filter_fundamential_data(%TickerData{total_debt: nil}), do: %TickerData{}
   defp filter_fundamential_data(%TickerData{earnings_history_surprise_percent_current_qr: nil}), do: %TickerData{}
 
-  defp filter_fundamential_data(%TickerData{ticker: ticker} = ticker_data), do: ticker_data
+  defp filter_fundamential_data(%TickerData{} = ticker_data), do: ticker_data
+
+  # Skip data without zacks rank
+  defp filter_zacks_data(%TickerData{zacks_rank: nil}), do: %TickerData{}
+
+  defp filter_zacks_data(%TickerData{} = ticker_data), do: ticker_data
 
   # Zacks rank processing
   defp apply_zacks_rank(%TickerData{ticker: nil}), do: %TickerData{}
