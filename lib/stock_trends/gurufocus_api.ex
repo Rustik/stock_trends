@@ -21,15 +21,25 @@ defmodule StockTrends.GurufocusApi do
   end
 
   defp find_financial_strength(body) do
-    Regex.run(~r/(?<=(Financial Strength\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
-    |> List.wrap
-    |> List.first
+    try do
+      Regex.run(~r/(?<=(Financial Strength\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
+      |> List.wrap
+      |> List.first
+      |> String.to_integer
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   defp find_profitability_rank(body) do
-    Regex.run(~r/(?<=(Profitability Rank\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
-    |> List.wrap
-    |> List.first
+    try do
+      Regex.run(~r/(?<=(Profitability Rank\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
+      |> List.wrap
+      |> List.first
+      |> String.to_integer
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   defp ticker_url(ticker) do

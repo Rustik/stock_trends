@@ -10,17 +10,23 @@ defmodule StockTrends.TrendEvaluator do
     data.price_sales_ttm < 3 and
     data.short_percent_of_shares <= 10 and
     data.total_debt * 3 < data.enterprise_value and
-    data.earnings_history_surprise_percent_current_qr > 0,
+    data.earnings_history_surprise_percent_current_qr > 0 and
+    data.zacks_rank <= 3 and
+    (data.zacks_style_scores == "A" or data.zacks_style_scores == "B" or data.zacks_style_scores == "C") and
+    (data.gurufocus_financial_strength + data.gurufocus_profitability_rank) >= 12,
     do: "long"
 
   def call(%TickerData{} = data) when
     data.trailing_pe < 18 and
     data.forward_pe < 18 and
-    data.total_debt * 3 >= data.enterprise_value and
+    #data.total_debt * 3 >= data.enterprise_value and
     data.earnings_history_surprise_percent_current_qr < 0 and
     data.earnings_history_surprise_percent_minus_1_qr < 0 and
     data.earnings_history_surprise_percent_minus_2_qr < 0 and
-    data.earnings_history_surprise_percent_minus_3_qr < 0,
+    #data.earnings_history_surprise_percent_minus_3_qr < 0 and
+    data.zacks_rank > 4 and
+    (data.zacks_style_scores != "A" and data.zacks_style_scores != "B" and data.zacks_style_scores != "C") and
+    (data.gurufocus_financial_strength + data.gurufocus_profitability_rank) < 12,
     do: "short"
 
   def call(%TickerData{}), do: nil

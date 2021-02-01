@@ -12,8 +12,8 @@ defmodule StockTrends.Puller do
     # Get ticker name and market category from CSV row.
     |> Flow.map(fn row ->
      %{
-        ticker:          row["Symbol"],
-        market_category: row["Market Category"] # Not used yet
+        ticker: row["Symbol"],
+        #market_category: row["Market Category"] # Not used yet
       }
     end)
     |> Flow.partition()
@@ -25,11 +25,12 @@ defmodule StockTrends.Puller do
   end
 
   # Get ticker data from Yahoo API, evaluate trend on it and save it to database.
-  def process_ticker(%{ticker: ticker, market_category: market_category}) do
+  def process_ticker(%{ticker: ticker}) do
     IO.puts("Processing #{ticker}..")
 
     get_yahoo_ticker(ticker)
     |> transform_yahoo_response(ticker)
+    |> filter_fundamential_data
     |> apply_zacks_rank
     |> apply_gurufocus_score
     |> evaluate_and_populate_trend
@@ -37,7 +38,7 @@ defmodule StockTrends.Puller do
     |> save_trend
   end
 
-  defp get_yahoo_ticker(name) do
+  def get_yahoo_ticker(name) do
     StockTrends.YahooApi.pull_ticker(name)
   end
 
@@ -51,8 +52,8 @@ defmodule StockTrends.Puller do
     q4 = Enum.find(earnings, fn e -> e["period"] == "-4q" end)
     %TickerData{
       ticker:                                       ticker_name,
-      trailing_pe:                                  dig(ticker_data, ["summaryDetail", "trailingPE", "raw"]),
-      forward_pe:                                   dig(ticker_data, ["summaryDetail", "forwardPE", "raw"]),
+      trailing_pe:                                  dig(ticker_data, ["summaryDetail", "trailingPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "trailingPE", "raw"]),
+      forward_pe:                                   dig(ticker_data, ["summaryDetail", "forwardPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "forwardPE", "raw"]),
       peg_ratio_5yr:                                dig(ticker_data, ["defaultKeyStatistics", "pegRatio", "raw"]),
       price_sales_ttm:                              dig(ticker_data, ["summaryDetail", "priceToSalesTrailing12Months", "raw"]),
       total_debt:                                   dig(ticker_data, ["financialData", "totalDebt", "raw"]),
@@ -64,6 +65,16 @@ defmodule StockTrends.Puller do
       earnings_history_surprise_percent_minus_3_qr: dig(q4, ["surprisePercent", "raw"])
     }
   end
+
+  # Skip fundaential data missing key values
+  defp filter_fundamential_data(%TickerData{ticker: nil}), do: %TickerData{}
+  defp filter_fundamential_data(%TickerData{trailing_pe: nil}), do: %TickerData{}
+  defp filter_fundamential_data(%TickerData{forward_pe: nil}), do: %TickerData{}
+  defp filter_fundamential_data(%TickerData{enterprise_value: nil}), do: %TickerData{}
+  defp filter_fundamential_data(%TickerData{total_debt: nil}), do: %TickerData{}
+  defp filter_fundamential_data(%TickerData{earnings_history_surprise_percent_current_qr: nil}), do: %TickerData{}
+
+  defp filter_fundamential_data(%TickerData{ticker: ticker} = ticker_data), do: ticker_data
 
   # Zacks rank processing
   defp apply_zacks_rank(%TickerData{ticker: nil}), do: %TickerData{}

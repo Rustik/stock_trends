@@ -23,15 +23,24 @@ defmodule StockTrends.ZacksApi do
   end
 
   defp find_rank(body) do
-    Regex.run(~r/(?<=(<span class="rank_chip rankrect_\d">))(\d)(?=(<\/span>))/, body)
-    |> List.wrap
-    |> List.first
+    try do
+      Regex.run(~r/(?<=(<span class="rank_chip rankrect_\d">))(\d)(?=(<\/span>))/, body)
+      |> List.wrap
+      |> List.first
+      |> String.to_integer
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   defp find_score(body) do
-    Regex.run(~r/(?<=(<span class="composite_val composite_val_vgm">))(\w)(?=(<\/span>&nbsp;VGM))/, body)
-    |> List.wrap
-    |> List.first
+    try do
+      Regex.run(~r/(?<=(<span class="composite_val composite_val_vgm">))(\w)(?=(<\/span>&nbsp;VGM))/, body)
+      |> List.wrap
+      |> List.first
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   defp ticker_url(ticker) do
