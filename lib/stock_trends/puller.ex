@@ -46,25 +46,31 @@ defmodule StockTrends.Puller do
   defp transform_yahoo_response({:error, _}, _), do: %TickerData{}
 
   defp transform_yahoo_response({:ok, ticker_data}, ticker_name) do
-    earnings = dig(ticker_data, ["earningsHistory", "history"]) || []
-    q1 = Enum.find(earnings, fn e -> e["period"] == "-1q" end)
-    q2 = Enum.find(earnings, fn e -> e["period"] == "-2q" end)
-    q3 = Enum.find(earnings, fn e -> e["period"] == "-3q" end)
-    q4 = Enum.find(earnings, fn e -> e["period"] == "-4q" end)
-    %TickerData{
-      ticker:                                       ticker_name,
-      trailing_pe:                                  dig(ticker_data, ["summaryDetail", "trailingPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "trailingPE", "raw"]),
-      forward_pe:                                   dig(ticker_data, ["summaryDetail", "forwardPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "forwardPE", "raw"]),
-      peg_ratio_5yr:                                dig(ticker_data, ["defaultKeyStatistics", "pegRatio", "raw"]),
-      price_sales_ttm:                              dig(ticker_data, ["summaryDetail", "priceToSalesTrailing12Months", "raw"]),
-      total_debt:                                   dig(ticker_data, ["financialData", "totalDebt", "raw"]),
-      enterprise_value:                             dig(ticker_data, ["defaultKeyStatistics", "enterpriseValue", "raw"]),
-      short_percent_of_shares:                      dig(ticker_data, ["defaultKeyStatistics", "shortPercentOfFloat", "raw"]) || 0,
-      earnings_history_surprise_percent_current_qr: dig(q1, ["surprisePercent", "raw"]),
-      earnings_history_surprise_percent_minus_1_qr: dig(q2, ["surprisePercent", "raw"]),
-      earnings_history_surprise_percent_minus_2_qr: dig(q3, ["surprisePercent", "raw"]),
-      earnings_history_surprise_percent_minus_3_qr: dig(q4, ["surprisePercent", "raw"])
-    }
+    try do
+      earnings = dig(ticker_data, ["earningsHistory", "history"]) || []
+      q1 = Enum.find(earnings, fn e -> e["period"] == "-1q" end)
+      q2 = Enum.find(earnings, fn e -> e["period"] == "-2q" end)
+      q3 = Enum.find(earnings, fn e -> e["period"] == "-3q" end)
+      q4 = Enum.find(earnings, fn e -> e["period"] == "-4q" end)
+      %TickerData{
+        ticker:                                       ticker_name,
+        trailing_pe:                                  dig(ticker_data, ["summaryDetail", "trailingPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "trailingPE", "raw"]),
+        forward_pe:                                   dig(ticker_data, ["summaryDetail", "forwardPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "forwardPE", "raw"]),
+        peg_ratio_5yr:                                dig(ticker_data, ["defaultKeyStatistics", "pegRatio", "raw"]),
+        price_sales_ttm:                              dig(ticker_data, ["summaryDetail", "priceToSalesTrailing12Months", "raw"]),
+        total_debt:                                   dig(ticker_data, ["financialData", "totalDebt", "raw"]),
+        enterprise_value:                             dig(ticker_data, ["defaultKeyStatistics", "enterpriseValue", "raw"]),
+        short_percent_of_shares:                      dig(ticker_data, ["defaultKeyStatistics", "shortPercentOfFloat", "raw"]) || 0,
+        earnings_history_surprise_percent_current_qr: dig(q1, ["surprisePercent", "raw"]),
+        earnings_history_surprise_percent_minus_1_qr: dig(q2, ["surprisePercent", "raw"]),
+        earnings_history_surprise_percent_minus_2_qr: dig(q3, ["surprisePercent", "raw"]),
+        earnings_history_surprise_percent_minus_3_qr: dig(q4, ["surprisePercent", "raw"]),
+        industry_earnings_pe_ivv:                     20.33 # TODO pull real value from external source
+      }
+    rescue
+      e in KeyError -> IO.puts("[#{ ticker_name }] Error while processing response: " <> e.message)
+      %TickerData{}
+    end
   end
 
   # Skip fundaential data missing key values
