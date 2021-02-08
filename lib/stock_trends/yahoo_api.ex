@@ -1,6 +1,4 @@
 defmodule StockTrends.YahooApi do
-  import StockTrends.Dig
-
   # Get ticker data from Yahoo API
   def pull_ticker(ticker) do
     case request_quote_summary(ticker) do
@@ -20,8 +18,11 @@ defmodule StockTrends.YahooApi do
 
   defp parsed_result(body) do
     Jason.decode!(body)
-    |> dig(["quoteSummary", "result"])
-    |> List.first
+    |> extract_result
+  end
+
+  defp extract_result(%{"quoteSummary" => %{"error" => nil, "result" => [result]}}) do
+    result
   end
 
   defp ticker_url(ticker) do

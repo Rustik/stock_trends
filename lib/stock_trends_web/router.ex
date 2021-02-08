@@ -3,8 +3,10 @@ defmodule StockTrendsWeb.Router do
 
   pipeline :browser do
     plug :accepts, ["html"]
+    plug :put_root_layout, {StockTrendsWeb.LayoutView, :root}
     plug :fetch_session
     plug :fetch_flash
+    plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -15,8 +17,7 @@ defmodule StockTrendsWeb.Router do
 
   scope "/", StockTrendsWeb do
     pipe_through :browser
-
-    get "/", PageController, :index
+    live "/", TrendsLive
   end
 
   # Other scopes may use custom stacks.

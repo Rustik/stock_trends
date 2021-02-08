@@ -1,6 +1,6 @@
 defmodule StockTrends.Puller do
-  import StockTrends.Dig
   alias StockTrends.TickerData
+  alias StockTrends.TrendQuery
   # Get tickers from CSV, queries Yahoo API for finance data,
   # evaluate this data to get trend for ticker and save trend to database.
   #
@@ -30,11 +30,12 @@ defmodule StockTrends.Puller do
 
     get_yahoo_ticker(ticker)
     |> transform_yahoo_response(ticker)
-    |> filter_fundamential_data
     |> apply_zacks_rank
     |> filter_zacks_data
     |> apply_gurufocus_score
     |> evaluate_and_populate_trend
+    |> filter_trend
+    |> set_date
     |> log_trend_found
     |> save_trend
   end
@@ -43,45 +44,110 @@ defmodule StockTrends.Puller do
     StockTrends.YahooApi.pull_ticker(name)
   end
 
-  defp transform_yahoo_response({:error, _}, _), do: %TickerData{}
+  def transform_yahoo_response({:error, _}, _), do: %TickerData{}
 
-  defp transform_yahoo_response({:ok, ticker_data}, ticker_name) do
-    try do
-      earnings = dig(ticker_data, ["earningsHistory", "history"]) || []
-      q1 = Enum.find(earnings, fn e -> e["period"] == "-1q" end)
-      q2 = Enum.find(earnings, fn e -> e["period"] == "-2q" end)
-      q3 = Enum.find(earnings, fn e -> e["period"] == "-3q" end)
-      q4 = Enum.find(earnings, fn e -> e["period"] == "-4q" end)
-      %TickerData{
-        ticker:                                       ticker_name,
-        trailing_pe:                                  dig(ticker_data, ["summaryDetail", "trailingPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "trailingPE", "raw"]),
-        forward_pe:                                   dig(ticker_data, ["summaryDetail", "forwardPE", "raw"]) || dig(ticker_data, ["defaultKeyStatistics", "forwardPE", "raw"]),
-        peg_ratio_5yr:                                dig(ticker_data, ["defaultKeyStatistics", "pegRatio", "raw"]),
-        price_sales_ttm:                              dig(ticker_data, ["summaryDetail", "priceToSalesTrailing12Months", "raw"]),
-        total_debt:                                   dig(ticker_data, ["financialData", "totalDebt", "raw"]),
-        enterprise_value:                             dig(ticker_data, ["defaultKeyStatistics", "enterpriseValue", "raw"]),
-        short_percent_of_shares:                      dig(ticker_data, ["defaultKeyStatistics", "shortPercentOfFloat", "raw"]) || 0,
-        earnings_history_surprise_percent_current_qr: dig(q1, ["surprisePercent", "raw"]),
-        earnings_history_surprise_percent_minus_1_qr: dig(q2, ["surprisePercent", "raw"]),
-        earnings_history_surprise_percent_minus_2_qr: dig(q3, ["surprisePercent", "raw"]),
-        earnings_history_surprise_percent_minus_3_qr: dig(q4, ["surprisePercent", "raw"]),
-        industry_earnings_pe_ivv:                     20.33 # TODO pull real value from external source
+  def transform_yahoo_response({:ok,
+    %{
+      "summaryDetail" => %{
+        "trailingPE" => %{
+          "raw" => trailing_pe
+        },
+        "forwardPE" => %{
+          "raw" => forward_pe
+        },
+        "priceToSalesTrailing12Months" => %{
+          "raw" => price_sales_ttm
+        }
+      },
+      "defaultKeyStatistics" => %{
+        "enterpriseValue" => %{
+          "raw" => enterprise_value
+        },
+        "shortPercentOfFloat" => %{
+          "raw" => short_percent_of_shares
+        },
+        "pegRatio" => %{
+          "raw" => peg_ratio_5yr
+        },
+      },
+      "earningsHistory" => %{
+        "history" => [
+          %{
+          "surprisePercent" => %{
+            "raw" => earnings_history_surprise_percent_minus_3_qr
+          },
+          "period" => "-4q"
+        }, %{
+          "surprisePercent" => %{
+            "raw" => earnings_history_surprise_percent_minus_2_qr
+          },
+          "period" => "-3q"
+        }, %{
+          "surprisePercent" => %{
+            "raw" => earnings_history_surprise_percent_minus_1_qr
+          },
+          "period" => "-2q"
+        }, %{
+          "surprisePercent" => %{
+            "raw" => earnings_history_surprise_percent_current_qr
+          },
+          "period" => "-1q"
+        }
+        ],
+      },
+      "financialData" => %{
+        "totalDebt" => %{
+          "raw" => total_debt
+        }
       }
-    rescue
-      e in KeyError -> IO.puts("[#{ ticker_name }] Error while processing response: " <> e.message)
-      %TickerData{}
-    end
+    }} = ticker_data, ticker_name) do
+
+    %TickerData{
+      ticker:                                       ticker_name,
+      trailing_pe:                                  trailing_pe || yahoo_response_alt_trailing_pe(ticker_data),
+      forward_pe:                                   forward_pe  || yahoo_response_alt_forward_pe(ticker_data),
+      peg_ratio_5yr:                                peg_ratio_5yr,
+      price_sales_ttm:                              price_sales_ttm,
+      total_debt:                                   total_debt,
+      enterprise_value:                             enterprise_value,
+      short_percent_of_shares:                      short_percent_of_shares || 0,
+      earnings_history_surprise_percent_current_qr: earnings_history_surprise_percent_current_qr,
+      earnings_history_surprise_percent_minus_1_qr: earnings_history_surprise_percent_minus_1_qr,
+      earnings_history_surprise_percent_minus_2_qr: earnings_history_surprise_percent_minus_2_qr,
+      earnings_history_surprise_percent_minus_3_qr: earnings_history_surprise_percent_minus_3_qr,
+      industry_earnings_pe_ivv:                     20.33 # TODO pull real value from external source
+    }
   end
 
-  # Skip fundaential data missing key values
-  defp filter_fundamential_data(%TickerData{ticker: nil}), do: %TickerData{}
-  defp filter_fundamential_data(%TickerData{trailing_pe: nil}), do: %TickerData{}
-  defp filter_fundamential_data(%TickerData{forward_pe: nil}), do: %TickerData{}
-  defp filter_fundamential_data(%TickerData{enterprise_value: nil}), do: %TickerData{}
-  defp filter_fundamential_data(%TickerData{total_debt: nil}), do: %TickerData{}
-  defp filter_fundamential_data(%TickerData{earnings_history_surprise_percent_current_qr: nil}), do: %TickerData{}
+  def transform_yahoo_response({:ok, _}, ticker_name) do
+    IO.puts("Missing data for #{ticker_name}, skipped")
+    %TickerData{}
+  end
 
-  defp filter_fundamential_data(%TickerData{} = ticker_data), do: ticker_data
+  # Alternative places for pe values
+  defp yahoo_response_alt_trailing_pe({:ok,
+    %{
+      "defaultKeyStatistics" => %{
+        "trailingPE" => %{
+          "raw" => value
+        }
+      }
+    }
+  }) do
+    value
+  end
+
+  defp yahoo_response_alt_forward_pe({:ok,
+    %{
+      "defaultKeyStatistics" => %{
+        "forwardPE" => %{
+          "raw" => value
+        }
+      }
+    }
+  }) do
+    value
+  end
 
   # Skip data without zacks rank
   defp filter_zacks_data(%TickerData{zacks_rank: nil}), do: %TickerData{}
@@ -131,11 +197,32 @@ defmodule StockTrends.Puller do
     %TickerData{ticker_data| type: StockTrends.TrendEvaluator.call(ticker_data)}
   end
 
+  defp set_date(%TickerData{ticker: nil}), do: %TickerData{}
+  defp set_date(%TickerData{} = ticker_data) do
+    %TickerData{ticker_data| date: Date.utc_today}
+  end
+
+  # Filter trend after evaluation
+  defp filter_trend(%TickerData{type: nil}), do: %TickerData{}
+  defp filter_trend(%{} = ticker_data) when map_size(ticker_data) == 0, do: %TickerData{}
+  defp filter_trend(%{} = ticker_data), do: ticker_data
+
+  # Check if trend is already exists
+  defp trend_exists?(%{} = ticker_data) when map_size(ticker_data) == 0, do: false
+  defp trend_exists?(%TickerData{type: nil}), do: false
+
+  defp trend_exists?(%TickerData{ticker: ticker, date: date, type: type}) do
+    TrendQuery.count(
+      ticker: ticker,
+      type: type,
+      date: date
+    ) > 0
+  end
+
   defp save_trend(%{} = ticker_data) when map_size(ticker_data) == 0, do: false
 
   defp save_trend(%TickerData{} = ticker_data) do
-    StockTrends.Trend.changeset(%StockTrends.Trend{}, %{Map.from_struct(ticker_data)| date: Date.utc_today})
-    |> StockTrends.Repo.insert
+    !trend_exists?(ticker_data) && TrendQuery.create_trend(ticker_data)
   end
 
   # Log and return data

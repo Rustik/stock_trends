@@ -1,0 +1,113 @@
+<div id="trends">
+  <form phx-change="filter">
+    <div class="filters">
+      <select name="type">
+        <%= options_for_select(type_options(), @type) %>
+      </select>
+    </div>
+  </form>
+
+  <div class="wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="item">
+            <%= sort_link(@socket, "Ticker", :ticker, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Trailing PE", :trailing_pe, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Forward PE", :forward_pe, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Industry PE", :industry_earnings_pe_ivv, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Zacks rank", :zacks_rank, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Zacks score", :zacks_style_scores, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Gurufocus Str.", :gurufocus_financial_strength, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Gurufocus Profit.", :gurufocus_profitability_rank, @options) %>
+          </th>
+          <th colspan=4s>
+            Earnings surpise (от старых к новым)
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for trend <- @trends do %>
+          <tr>
+            <td class="item">
+              <%= trend.ticker %>
+            </td>
+            <td>
+              <%= trend.trailing_pe %>
+            </td>
+            <td>
+              <%= trend.forward_pe %>
+            </td>
+            <td>
+              <%= trend.industry_earnings_pe_ivv %>
+            </td>
+            <td>
+              <%= trend.zacks_rank %>
+            </td>
+            <td>
+              <%= trend.zacks_style_scores %>
+            </td>
+            <td>
+              <%= trend.gurufocus_financial_strength %>
+            </td>
+            <td>
+              <%= trend.gurufocus_profitability_rank %>
+            </td>
+            <td>
+              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_3_qr * 100, precision: 2) %>
+            </td>
+            <td>
+              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_2_qr * 100, precision: 2) %>
+            </td>
+            <td>
+              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_1_qr * 100, precision: 2) %>
+            </td>
+            <td>
+              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_current_qr * 100, precision: 2) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="footer">
+      <div>Обновлено <%= @updated_at %></div>
+      <%= if @options.pages_count > 1 do %>
+        <div class="pagination">
+          <%= if @options.page > 1 do %>
+            <%= pagination_link(@socket,
+                                "Назад",
+                                @options.page - 1,
+                                @options,
+                                "назад") %>
+          <% end %>
+          <%= for i <- (@options.page - 2)..(@options.pages_count), i > 0 do %>
+            <%= pagination_link(@socket,
+                                  i,
+                                  i,
+                                  @options,
+                                  (if i == @options.page, do: "active")) %>
+          <% end %>
+          <%= pagination_link(@socket,
+                                "Вперед",
+                                @options.page + 1,
+                                @options,
+                                "вперед") %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

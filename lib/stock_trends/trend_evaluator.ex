@@ -21,8 +21,9 @@ defmodule StockTrends.TrendEvaluator do
     data.forward_pe < data.industry_earnings_pe_ivv - 3 and
     #data.total_debt * 3 >= data.enterprise_value and
     data.earnings_history_surprise_percent_current_qr < 0 and
-    (data.earnings_history_surprise_percent_minus_1_qr < 0 or data.earnings_history_surprise_percent_minus_2_qr < 0) and
-    #data.earnings_history_surprise_percent_minus_3_qr < 0 and
+    (data.earnings_history_surprise_percent_minus_1_qr < 0 or
+    data.earnings_history_surprise_percent_minus_2_qr < 0 or
+    data.earnings_history_surprise_percent_minus_3_qr < 0) and
     data.zacks_rank >= 4 and
     (data.zacks_style_scores != "A" and data.zacks_style_scores != "B") and
     (data.gurufocus_financial_strength + data.gurufocus_profitability_rank) < 12,

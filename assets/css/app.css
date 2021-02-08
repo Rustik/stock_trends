@@ -1,5 +1,9 @@
 /* This file is for your main application css. */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
 @import "./phoenix.css";
+@import "./custom.css";
+@import "tailwindcss/utilities";
 
 /* Alerts and form errors */
 .alert {
