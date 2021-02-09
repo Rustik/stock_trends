@@ -6,8 +6,8 @@ defmodule StockTrends.TrendEvaluator do
   def call(%TickerData{} = data) when
     data.trailing_pe > data.industry_earnings_pe_ivv + 3 and
     data.forward_pe > data.industry_earnings_pe_ivv + 3 and
-    data.peg_ratio_5yr < 3 and
-    data.price_sales_ttm < 3 and
+    data.peg_ratio_5yr < 4 and
+    data.price_sales_ttm < 4 and
     data.short_percent_of_shares <= 0.1 and
     data.total_debt * 3 < data.enterprise_value and
     data.earnings_history_surprise_percent_current_qr > 0 and

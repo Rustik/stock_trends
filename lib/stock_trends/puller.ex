@@ -44,110 +44,91 @@ defmodule StockTrends.Puller do
     StockTrends.YahooApi.pull_ticker(name)
   end
 
-  def transform_yahoo_response({:error, _}, _), do: %TickerData{}
+  defp transform_yahoo_response({:error, _}, _), do: %TickerData{}
 
-  def transform_yahoo_response({:ok,
+  defp transform_yahoo_response({:ok,
     %{
       "summaryDetail" => %{
-        "trailingPE" => %{
-          "raw" => trailing_pe
-        },
-        "forwardPE" => %{
-          "raw" => forward_pe
-        },
-        "priceToSalesTrailing12Months" => %{
-          "raw" => price_sales_ttm
-        }
+        "trailingPE" => trailing_pe_map,
+        "forwardPE" => forward_pe_map,
+        "priceToSalesTrailing12Months" => price_sales_ttm_map
       },
       "defaultKeyStatistics" => %{
-        "enterpriseValue" => %{
-          "raw" => enterprise_value
-        },
-        "shortPercentOfFloat" => %{
-          "raw" => short_percent_of_shares
-        },
-        "pegRatio" => %{
-          "raw" => peg_ratio_5yr
-        },
+        "enterpriseValue" => enterprise_value_map,
+        "shortPercentOfFloat" => short_percent_of_shares_map,
+        "pegRatio" => peg_ratio_5yr_map
       },
       "earningsHistory" => %{
         "history" => [
           %{
-          "surprisePercent" => %{
-            "raw" => earnings_history_surprise_percent_minus_3_qr
-          },
+          "surprisePercent" => earnings_history_surprise_percent_minus_3_qr_map,
           "period" => "-4q"
         }, %{
-          "surprisePercent" => %{
-            "raw" => earnings_history_surprise_percent_minus_2_qr
-          },
+          "surprisePercent" => earnings_history_surprise_percent_minus_2_qr_map,
           "period" => "-3q"
         }, %{
-          "surprisePercent" => %{
-            "raw" => earnings_history_surprise_percent_minus_1_qr
-          },
+          "surprisePercent" => earnings_history_surprise_percent_minus_1_qr_map,
           "period" => "-2q"
         }, %{
-          "surprisePercent" => %{
-            "raw" => earnings_history_surprise_percent_current_qr
-          },
+          "surprisePercent" => earnings_history_surprise_percent_current_qr_map,
           "period" => "-1q"
         }
         ],
       },
       "financialData" => %{
-        "totalDebt" => %{
-          "raw" => total_debt
-        }
+        "totalDebt" => total_debt_map
       }
     }} = ticker_data, ticker_name) do
 
     %TickerData{
       ticker:                                       ticker_name,
-      trailing_pe:                                  trailing_pe || yahoo_response_alt_trailing_pe(ticker_data),
-      forward_pe:                                   forward_pe  || yahoo_response_alt_forward_pe(ticker_data),
-      peg_ratio_5yr:                                peg_ratio_5yr,
-      price_sales_ttm:                              price_sales_ttm,
-      total_debt:                                   total_debt,
-      enterprise_value:                             enterprise_value,
-      short_percent_of_shares:                      short_percent_of_shares || 0,
-      earnings_history_surprise_percent_current_qr: earnings_history_surprise_percent_current_qr,
-      earnings_history_surprise_percent_minus_1_qr: earnings_history_surprise_percent_minus_1_qr,
-      earnings_history_surprise_percent_minus_2_qr: earnings_history_surprise_percent_minus_2_qr,
-      earnings_history_surprise_percent_minus_3_qr: earnings_history_surprise_percent_minus_3_qr,
+      trailing_pe:                                  get_raw_data(trailing_pe_map) || yahoo_response_alt_trailing_pe(ticker_data),
+      forward_pe:                                   get_raw_data(forward_pe_map)  || yahoo_response_alt_forward_pe(ticker_data),
+      peg_ratio_5yr:                                get_raw_data(peg_ratio_5yr_map),
+      price_sales_ttm:                              get_raw_data(price_sales_ttm_map),
+      total_debt:                                   get_raw_data(total_debt_map),
+      enterprise_value:                             get_raw_data(enterprise_value_map),
+      short_percent_of_shares:                      get_raw_data(short_percent_of_shares_map),
+      earnings_history_surprise_percent_current_qr: get_raw_data(earnings_history_surprise_percent_current_qr_map),
+      earnings_history_surprise_percent_minus_1_qr: get_raw_data(earnings_history_surprise_percent_minus_1_qr_map),
+      earnings_history_surprise_percent_minus_2_qr: get_raw_data(earnings_history_surprise_percent_minus_2_qr_map),
+      earnings_history_surprise_percent_minus_3_qr: get_raw_data(earnings_history_surprise_percent_minus_3_qr_map),
       industry_earnings_pe_ivv:                     20.33 # TODO pull real value from external source
     }
   end
 
-  def transform_yahoo_response({:ok, _}, ticker_name) do
+  defp transform_yahoo_response({:ok, _}, ticker_name) do
     IO.puts("Missing data for #{ticker_name}, skipped")
     %TickerData{}
   end
+
+  defp get_raw_data(%{}), do: nil
+  defp get_raw_data(%{"raw" => val}), do: val
 
   # Alternative places for pe values
   defp yahoo_response_alt_trailing_pe({:ok,
     %{
       "defaultKeyStatistics" => %{
-        "trailingPE" => %{
-          "raw" => value
-        }
+        "trailingPE" => trailing_pe_map
       }
     }
   }) do
-    value
+    get_raw_data(trailing_pe_map)
   end
+
+  defp yahoo_response_alt_trailing_pe({:ok,%{}}), do: nil
 
   defp yahoo_response_alt_forward_pe({:ok,
     %{
       "defaultKeyStatistics" => %{
-        "forwardPE" => %{
-          "raw" => value
-        }
+        "forwardPE" => forward_pe_map
       }
     }
   }) do
-    value
+    get_raw_data(forward_pe_map)
   end
+
+  defp yahoo_response_alt_forward_pe({:ok,%{}}), do: nil
 
   # Skip data without zacks rank
   defp filter_zacks_data(%TickerData{zacks_rank: nil}), do: %TickerData{}
