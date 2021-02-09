@@ -101,11 +101,13 @@
                                   @options,
                                   (if i == @options.page, do: "active")) %>
           <% end %>
-          <%= pagination_link(@socket,
+          <%= if @options.pages_count > @options.page do %>
+            <%= pagination_link(@socket,
                                 "Вперед",
                                 @options.page + 1,
                                 @options,
                                 "вперед") %>
+          <% end %>
         </div>
       <% end %>
     </div>

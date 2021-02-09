@@ -25,7 +25,7 @@ defmodule StockTrendsWeb.TrendsLive do
         type: type,
         date: date
       )
-    pages_count = if trends_count > per_page, do: (trends_count/per_page).ceil, else: 1
+    pages_count = if trends_count > per_page, do: ceil(trends_count/per_page), else: 1
 
     paginate_options = %{page: page, per_page: per_page, pages_count: pages_count}
     sort_options = %{sort_by: sort_by, sort_order: sort_order}
