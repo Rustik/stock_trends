@@ -102,8 +102,8 @@ defmodule StockTrends.Puller do
     %TickerData{}
   end
 
-  defp get_raw_data(%{}), do: nil
   defp get_raw_data(%{"raw" => val}), do: val
+  defp get_raw_data(%{}), do: nil
 
   # Alternative places for pe values
   defp yahoo_response_alt_trailing_pe({:ok,
