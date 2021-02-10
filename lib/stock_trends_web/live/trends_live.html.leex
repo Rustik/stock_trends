@@ -68,16 +68,24 @@
               <%= trend.gurufocus_profitability_rank %>
             </td>
             <td>
-              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_3_qr * 100, precision: 2) %>
+              <%= if trend.earnings_history_surprise_percent_minus_3_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_3_qr * 100, precision: 2) %>
+              <% end %>
             </td>
             <td>
-              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_2_qr * 100, precision: 2) %>
+              <%= if trend.earnings_history_surprise_percent_minus_2_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_2_qr * 100, precision: 2) %>
+              <% end %>
             </td>
             <td>
-              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_1_qr * 100, precision: 2) %>
+              <%= if trend.earnings_history_surprise_percent_minus_1_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_1_qr * 100, precision: 2) %>
+              <% end %>
             </td>
             <td>
-              <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_current_qr * 100, precision: 2) %>
+              <%= if trend.earnings_history_surprise_percent_current_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_current_qr * 100, precision: 2) %>
+              <% end %>
             </td>
           </tr>
         <% end %>

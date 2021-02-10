@@ -26,6 +26,6 @@ defmodule StockTrends.YahooApi do
   end
 
   defp ticker_url(ticker) do
-    "https://query1.finance.yahoo.com/v10/finance/quoteSummary/#{ticker}?modules=summaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CearningsHistory"
+    "https://query#{:rand.uniform(2)}.finance.yahoo.com/v10/finance/quoteSummary/#{ticker}?modules=summaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CearningsHistory"
   end
 end

@@ -93,7 +93,7 @@ defmodule StockTrends.Puller do
       earnings_history_surprise_percent_minus_1_qr: get_raw_data(earnings_history_surprise_percent_minus_1_qr_map),
       earnings_history_surprise_percent_minus_2_qr: get_raw_data(earnings_history_surprise_percent_minus_2_qr_map),
       earnings_history_surprise_percent_minus_3_qr: get_raw_data(earnings_history_surprise_percent_minus_3_qr_map),
-      industry_earnings_pe_ivv:                     20.33 # TODO pull real value from external source
+      industry_earnings_pe_ivv:                     20.58 # TODO pull real value from external source
     }
   end
 
@@ -102,6 +102,7 @@ defmodule StockTrends.Puller do
     %TickerData{}
   end
 
+  defp get_raw_data(val) when is_number(val), do: val
   defp get_raw_data(%{"raw" => val}), do: val
   defp get_raw_data(%{}), do: nil
 
