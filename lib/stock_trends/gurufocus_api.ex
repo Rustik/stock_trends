@@ -3,11 +3,11 @@ defmodule StockTrends.GurufocusApi do
   def get_score(ticker) do
     case request_quote_summary(ticker) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        {:ok, parsed_result(body)}
+        parsed_result(body)
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        {:error, "[ZacksApi] Ticker not found"}
+        "[GurufocusApi] Ticker not found"
       {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, "[ZacksApi] Error: #{reason}"}
+        "[GurufocusApi] Error: #{reason}"
     end
   end
 
@@ -21,28 +21,23 @@ defmodule StockTrends.GurufocusApi do
   end
 
   defp find_financial_strength(body) do
-    try do
-      Regex.run(~r/(?<=(Financial Strength\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
-      |> List.wrap
-      |> List.first
-      |> String.to_integer
-    rescue
-      ArgumentError -> nil
-    end
+    Regex.run(~r/(?<=(Financial Strength\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
+    |> List.wrap
+    |> List.first
+    |> string_to_integer
   end
 
   defp find_profitability_rank(body) do
-    try do
-      Regex.run(~r/(?<=(Profitability Rank\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
-      |> List.wrap
-      |> List.first
-      |> String.to_integer
-    rescue
-      ArgumentError -> nil
-    end
+    Regex.run(~r/(?<=(Profitability Rank\s<\/a><\/h2><\/td> <td width="40" class="fs-large fc-regular fw-bolder" data-v-\w{8}>\n))(\d*)(?=(\/(\d*)(\s*)<\/td>))/, body)
+    |> List.wrap
+    |> List.first
+    |> string_to_integer
   end
 
   defp ticker_url(ticker) do
-    "https://www.gurufocus.com/stock/#{ticker}/summary?search=#{ticker}"
+    "https://www.gurufocus.com/stock/#{ ticker }/summary?search=#{ ticker }"
   end
+
+  defp string_to_integer(value) when not is_nil(value), do: String.to_integer(value)
+  defp string_to_integer(value), do: value
 end

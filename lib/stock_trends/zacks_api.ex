@@ -3,13 +3,13 @@ defmodule StockTrends.ZacksApi do
   def get_rank(ticker) do
     case request_quote_summary(ticker) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        {:ok, parsed_result(body)}
+        parsed_result(body)
       {:ok, %HTTPoison.Response{status_code: 404}} ->
-        {:error, "[ZacksApi] Ticker not found"}
+        "[ZacksApi] Ticker not found"
       {:ok, %HTTPoison.Response{status_code: 302}} ->
-        {:error, "[ZacksApi] Ticker not found(got redirect)"}
+        "[ZacksApi] Ticker not found(got redirect)"
       {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, "[ZacksApi] Error: #{reason}"}
+        "[ZacksApi] Error: #{reason}"
     end
   end
 
@@ -23,27 +23,22 @@ defmodule StockTrends.ZacksApi do
   end
 
   defp find_rank(body) do
-    try do
-      Regex.run(~r/(?<=(<span class="rank_chip rankrect_\d">))(\d)(?=(<\/span>))/, body)
-      |> List.wrap
-      |> List.first
-      |> String.to_integer
-    rescue
-      ArgumentError -> nil
-    end
+    Regex.run(~r/(?<=(<span class="rank_chip rankrect_\d">))(\d)(?=(<\/span>))/, body)
+    |> List.wrap
+    |> List.first
+    |> string_to_integer
   end
 
   defp find_score(body) do
-    try do
-      Regex.run(~r/(?<=(<span class="composite_val composite_val_vgm">))(\w)(?=(<\/span>&nbsp;VGM))/, body)
-      |> List.wrap
-      |> List.first
-    rescue
-      ArgumentError -> nil
-    end
+    Regex.run(~r/(?<=(<span class="composite_val composite_val_vgm">))(\w)(?=(<\/span>&nbsp;VGM))/, body)
+    |> List.wrap
+    |> List.first
   end
 
   defp ticker_url(ticker) do
-    "https://www.zacks.com/stock/quote/#{ticker}?q=#{ticker}"
+    "https://www.zacks.com/stock/quote/#{ ticker }?q=#{ ticker }"
   end
+
+  defp string_to_integer(value) when not is_nil(value), do: String.to_integer(value)
+  defp string_to_integer(value), do: value
 end
