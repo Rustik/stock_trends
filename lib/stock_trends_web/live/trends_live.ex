@@ -55,7 +55,7 @@ defmodule StockTrendsWeb.TrendsLive do
           Routes.live_path(
             socket,
             __MODULE__,
-            page: socket.assigns.options.page,
+            page: 1,
             per_page: socket.assigns.options.per_page,
             sort_by: socket.assigns.options.sort_by,
             sort_order: socket.assigns.options.sort_order,

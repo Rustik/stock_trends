@@ -1,10 +1,12 @@
 defmodule StockTrends.Puller do
   alias StockTrends.TickerData
   alias StockTrends.TrendQuery
-  # Get tickers from CSV, queries Yahoo API for finance data,
-  # evaluate this data to get trend for ticker and save trend to database.
+  @table __MODULE__
+  #
+  # Get tickers from CSV, queries financial APIs, process the data, evaluates trends and save it to database.
   #
   def call() do
+    init_cache()
     with_tickers()
     |> process_external_apis
     |> evaluate_trend
@@ -14,11 +16,13 @@ defmodule StockTrends.Puller do
 
   def with_tickers() do
     System.get_env("TICKERS_CSV_PATH")
-    |> File.stream!(read_ahead: 100_000)
+    |> File.stream!(read_ahead: 10_000)
     |> CSV.decode!(separator: ?|, headers: true)
+    |> log_csv_size()
     |> Flow.from_enumerable()
     |> Flow.map(fn row -> TickerData.new(row["Symbol"]) end)
     |> Flow.partition()
+    |> record_processing_started()
   end
 
   def process_external_apis(flow) do
@@ -88,7 +92,50 @@ defmodule StockTrends.Puller do
     end)
   end
 
-  def get_yahoo_data(ticker) do
+  #
+  # Logging functions
+  #
+  def log_csv_size(enumerable) do
+    count = Enum.count(enumerable)
+    log("processing tickers csv #{ count } rows")
+    set_metric(:count, count)
+    enumerable
+  end
+
+  def record_processing_started(flow) do
+    flow
+    |> Flow.each(fn ticker_data ->
+      log("processing #{ ticker_data.ticker }..")
+      increase_metric(:processed)
+    end)
+  end
+
+  defp log(message), do: IO.puts(message)
+
+  #
+  # Metrics functions
+  #
+  def init_cache do
+    :ets.new(@table, [:set, :public, :named_table])
+  end
+
+  def metrics do
+    if metrics_exists?(), do: :ets.tab2list(@table), else: %{}
+  end
+
+  def metrics_exists? do
+    Enum.member?(:ets.all(), @table)
+  end
+
+  def increase_metric(key) do
+    :ets.update_counter(@table, key, {2, 1}, {key, 0}) # increment second element of tuple by 1
+  end
+
+  def set_metric(key, value) do
+    :ets.insert(@table, {key, value})
+  end
+
+  defp get_yahoo_data(ticker) do
     StockTrends.YahooApi.pull_ticker(ticker)
   end
 
@@ -116,6 +163,4 @@ defmodule StockTrends.Puller do
       date: ticker_data.date
     ) > 0
   end
-
-  defp log(message), do: IO.puts(message)
 end

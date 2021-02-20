@@ -6,6 +6,8 @@ defmodule StockTrends.Application do
   use Application
 
   def start(_type, _args) do
+    import Supervisor.Spec, warn: false
+
     children = [
       # Start the Ecto repository
       StockTrends.Repo,
@@ -14,7 +16,8 @@ defmodule StockTrends.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: StockTrends.PubSub},
       # Start the Endpoint (http/https)
-      StockTrendsWeb.Endpoint
+      StockTrendsWeb.Endpoint,
+      supervisor(StockTrends.LinkPuller.Supervisor, []),
       # Start a worker by calling: StockTrends.Worker.start_link(arg)
       # {StockTrends.Worker, arg}
     ]
