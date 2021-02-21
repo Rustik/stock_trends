@@ -2,8 +2,10 @@ defmodule StockTrendsWeb.TrendsLive do
   use StockTrendsWeb, :live_view
 
   alias StockTrends.TrendQuery
+  alias StockTrends.LinkPuller
 
   def mount(_params, _session, socket) do
+    if connected?(socket), do: check_data_and_run_puller()
     {:ok, socket, temporary_assigns: [trends: [], type: "long", updated_at: nil]}
   end
 
@@ -20,11 +22,11 @@ defmodule StockTrendsWeb.TrendsLive do
     date = (params["date"] || (Date.utc_today |> Date.to_string()))
     date_options = %{date: date}
 
-    trends_count =
-      TrendQuery.count(
-        type: type,
-        date: date
-      )
+    trends_count = TrendQuery.count(
+      type: type,
+      date: date
+    )
+
     pages_count = if trends_count > per_page, do: ceil(trends_count/per_page), else: 1
 
     paginate_options = %{page: page, per_page: per_page, pages_count: pages_count}
@@ -42,7 +44,8 @@ defmodule StockTrendsWeb.TrendsLive do
       assign(socket,
         options: Map.merge(Map.merge(Map.merge(paginate_options, sort_options), type_options), date_options),
         trends: trends,
-        updated_at: last_updated_at(date, type)
+        updated_at: last_updated_at(date, type),
+        last_pull_info: last_pull_info()
       )
 
     {:noreply, socket}
@@ -61,6 +64,29 @@ defmodule StockTrendsWeb.TrendsLive do
             sort_order: socket.assigns.options.sort_order,
             type: type,
             date: socket.assigns.options.date
+          )
+      )
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:update_puller_info, socket) do
+    IO.puts puller_running?()
+    if puller_running?(), do: Process.send_after(self(), :update_puller_info, 1000)
+
+    socket =
+      push_patch(socket,
+        to:
+          Routes.live_path(
+            socket,
+            __MODULE__,
+            page: socket.assigns.options.page,
+            per_page: socket.assigns.options.per_page,
+            sort_by: socket.assigns.options.sort_by,
+            sort_order: socket.assigns.options.sort_order,
+            type: socket.assigns.options.type,
+            date: socket.assigns.options.date,
+            last_pull_info: last_pull_info()
           )
       )
 
@@ -87,6 +113,27 @@ defmodule StockTrendsWeb.TrendsLive do
       )
 
     {:noreply, socket}
+  end
+
+  defp last_pull_info do
+    LinkPuller.info()
+  end
+
+  defp check_data_and_run_puller do
+    if no_data_for_today?() and not puller_running?(), do: pull, else: nil
+  end
+
+  defp no_data_for_today? do
+    TrendQuery.count(date: Date.utc_today) == 0
+  end
+
+  defp puller_running? do
+    LinkPuller.puller_running?
+  end
+
+  defp pull do
+    LinkPuller.perform()
+    Process.send_after(self(), :update_puller_info, 1000)
   end
 
   defp pagination_link(socket, text, page, options, class) do

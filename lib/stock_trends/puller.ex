@@ -1,12 +1,12 @@
 defmodule StockTrends.Puller do
   alias StockTrends.TickerData
   alias StockTrends.TrendQuery
-  @table __MODULE__
+  import StockTrends.CacheMetrics
   #
   # Get tickers from CSV, queries financial APIs, process the data, evaluates trends and save it to database.
   #
   def call() do
-    init_cache()
+    on_start()
     with_tickers()
     |> process_external_apis
     |> evaluate_trend
@@ -18,11 +18,11 @@ defmodule StockTrends.Puller do
     System.get_env("TICKERS_CSV_PATH")
     |> File.stream!(read_ahead: 10_000)
     |> CSV.decode!(separator: ?|, headers: true)
-    |> log_csv_size()
+    |> on_csv_read()
     |> Flow.from_enumerable()
     |> Flow.map(fn row -> TickerData.new(row["Symbol"]) end)
     |> Flow.partition()
-    |> record_processing_started()
+    |> on_tickers_read()
   end
 
   def process_external_apis(flow) do
@@ -83,6 +83,7 @@ defmodule StockTrends.Puller do
   def finalize(flow) do
     flow
     |> Enum.to_list
+    on_complete()
   end
 
   def flow_log(flow, message) do
@@ -93,16 +94,15 @@ defmodule StockTrends.Puller do
   end
 
   #
-  # Logging functions
+  # Callbacks
   #
-  def log_csv_size(enumerable) do
-    count = Enum.count(enumerable)
-    log("processing tickers csv #{ count } rows")
-    set_metric(:count, count)
-    enumerable
+  def on_start do
+    init_metrics()
+    log("puller started")
+    set_metric(:status, "started")
   end
 
-  def record_processing_started(flow) do
+  def on_tickers_read(flow) do
     flow
     |> Flow.each(fn ticker_data ->
       log("processing #{ ticker_data.ticker }..")
@@ -110,30 +110,18 @@ defmodule StockTrends.Puller do
     end)
   end
 
+  def on_csv_read(enumerable) do
+    count = Enum.count(enumerable)
+    log("processing tickers csv #{ count } rows")
+    set_metric(:count, count)
+    enumerable
+  end
+
+  def on_complete do
+    set_metric(:status, "ready")
+  end
+
   defp log(message), do: IO.puts(message)
-
-  #
-  # Metrics functions
-  #
-  def init_cache do
-    :ets.new(@table, [:set, :public, :named_table])
-  end
-
-  def metrics do
-    if metrics_exists?(), do: :ets.tab2list(@table), else: %{}
-  end
-
-  def metrics_exists? do
-    Enum.member?(:ets.all(), @table)
-  end
-
-  def increase_metric(key) do
-    :ets.update_counter(@table, key, {2, 1}, {key, 0}) # increment second element of tuple by 1
-  end
-
-  def set_metric(key, value) do
-    :ets.insert(@table, {key, value})
-  end
 
   defp get_yahoo_data(ticker) do
     StockTrends.YahooApi.pull_ticker(ticker)

@@ -1,4 +1,5 @@
 defmodule StockTrends.LinkPuller do
+  import StockTrends.CacheMetrics
   alias StockTrends.Puller
   use GenServer
   #
@@ -12,18 +13,18 @@ defmodule StockTrends.LinkPuller do
     GenServer.cast(__MODULE__, :perform)
   end
 
-  def metrics do
-    GenServer.call(__MODULE__, :metrics)
+  def puller_running? do
+    metrics()[:status] == "started"
+  end
+
+  def info do
+    generate_info()
   end
 
   # GenServer callbacks
 
   def handle_cast(:perform, state) do
     {:noreply, Puller.call, state}
-  end
-
-  def handle_call(:metrics, _from, state) do
-    {:reply, Puller.metrics, state}
   end
 
   def init(state \\ %{}) do
