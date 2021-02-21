@@ -31,8 +31,45 @@ defmodule StockTrends.TrendQuery do
     |> Repo.insert
   end
 
+  # TODO move `lasts` column to db (cache)
   defp build_from_criteria(criteria) do
-    query = from(t in Trend)
+    query = from t in Trend,
+      select: %{
+         t |
+         lasts: fragment("
+         (
+          SELECT
+        		MAX(ROW_NUMBER)
+        	FROM
+        		(
+        			SELECT
+        				ROW_NUMBER() OVER (
+        					PARTITION BY ticker,
+        					TYPE,
+        					grp
+        					ORDER BY
+        						DATE
+        				)
+        			FROM
+        				(
+        					SELECT
+        						*,
+        						DATE - '2000-01-01'::DATE - ROW_NUMBER() OVER (
+        							PARTITION BY ticker,
+        							TYPE
+        							ORDER BY
+        								DATE
+        						) AS grp
+        					FROM
+        						trends
+        					WHERE
+        						ticker = t0.ticker
+        						AND TYPE = t0.type
+        				) sub0
+        		) sub1
+          )
+         ")
+       }
 
     Enum.reduce(criteria, query, fn
       {:paginate, %{page: page, per_page: per_page}}, query ->

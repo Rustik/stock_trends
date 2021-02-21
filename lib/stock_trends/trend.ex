@@ -23,6 +23,7 @@ defmodule StockTrends.Trend do
     field :earnings_exp_eps_growth_3_5yrs, :float
     field :gurufocus_financial_strength, :integer
     field :gurufocus_profitability_rank, :integer
+    field :lasts, :integer, virtual: true
 
     timestamps()
   end

@@ -11,6 +11,9 @@
     <table>
       <thead>
         <tr>
+          <th>
+            <%= "Длится дней" %>
+          </th>
           <th class="item">
             <%= sort_link(@socket, "Ticker", :ticker, @options) %>
           </th>
@@ -43,6 +46,9 @@
       <tbody>
         <%= for trend <- @trends do %>
           <tr>
+            <td>
+              <%= trend.lasts %>
+            </td>
             <td class="item">
               <%= trend.ticker %>
             </td>
