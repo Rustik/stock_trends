@@ -20,7 +20,7 @@ defmodule StockTrends.MixProject do
   def application do
     [
       mod: {StockTrends.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:retry, :logger, :runtime_tools]
     ]
   end
 
@@ -51,7 +51,8 @@ defmodule StockTrends.MixProject do
       {:httpoison, "~> 1.7"},
       {:jason, "~> 1.2"},
       {:surface, "~> 0.1.0"},
-      {:number, "~> 1.0.3"}
+      {:number, "~> 1.0.3"},
+      {:retry, "~> 0.14"}
     ]
   end
 

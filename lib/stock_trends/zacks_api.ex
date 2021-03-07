@@ -1,7 +1,8 @@
 defmodule StockTrends.ZacksApi do
+  use Retry
   # Get zacks rank for ticker
   def get_rank(ticker) do
-    case request_quote_summary(ticker) do
+    case request_quote_summary_with_retry(ticker) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         parsed_result(body)
       {:ok, %HTTPoison.Response{status_code: 404}} ->
@@ -10,6 +11,16 @@ defmodule StockTrends.ZacksApi do
         "[ZacksApi] Ticker not found(got redirect)"
       {:error, %HTTPoison.Error{reason: reason}} ->
         "[ZacksApi] Error: #{reason}"
+    end
+  end
+
+  defp request_quote_summary_with_retry(ticker) do
+    retry with: linear_backoff(10, 2) |> cap(1_000) |> Stream.take(10) do
+      request_quote_summary(ticker)
+    after
+      result -> result
+    else
+      error -> error
     end
   end
 
