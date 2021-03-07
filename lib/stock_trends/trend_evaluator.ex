@@ -30,7 +30,7 @@ defmodule StockTrends.TrendEvaluator do
     data.trailing_pe > data.industry_earnings_pe_ivv + 3 and
     data.forward_pe > data.industry_earnings_pe_ivv + 3 and
     data.peg_ratio_5yr < 4 and
-    data.price_sales_ttm < 7 and
+    data.price_sales_ttm < 8 and
     data.short_percent_of_shares <= 0.1 and
     data.total_debt * 3 < data.enterprise_value and
     earnings_list_match_long(
@@ -55,7 +55,7 @@ defmodule StockTrends.TrendEvaluator do
       data.earnings_history_surprise_percent_minus_2_qr,
       data.earnings_history_surprise_percent_minus_3_qr
     ) and
-    data.zacks_rank >= 4 and
+    data.zacks_rank >= 3 and
     (data.zacks_style_scores != "A" and data.zacks_style_scores != "B") and
     (data.gurufocus_financial_strength + data.gurufocus_profitability_rank) < 12,
     do: "short"
