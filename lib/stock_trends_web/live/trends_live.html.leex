@@ -24,6 +24,9 @@
             <%= sort_link(@socket, "Forward PE", :forward_pe, @options) %>
           </th>
           <th>
+            <%= sort_link(@socket, "Price/Sales(ttm)", :price_sales_ttm, @options) %>
+          </th>
+          <th>
             <%= sort_link(@socket, "IVV(iShares-SP500)", :industry_earnings_pe_ivv, @options) %>
           </th>
           <th>
@@ -57,6 +60,9 @@
             </td>
             <td>
               <%= trend.forward_pe %>
+            </td>
+            <td>
+              <%= trend.price_sales_ttm %>
             </td>
             <td>
               <%= trend.industry_earnings_pe_ivv %>

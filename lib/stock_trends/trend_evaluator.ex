@@ -30,7 +30,7 @@ defmodule StockTrends.TrendEvaluator do
     data.trailing_pe > data.industry_earnings_pe_ivv + 3 and
     data.forward_pe > data.industry_earnings_pe_ivv + 3 and
     data.peg_ratio_5yr < 4 and
-    data.price_sales_ttm < 8 and
+    #data.price_sales_ttm < 15 and
     data.short_percent_of_shares <= 0.1 and
     data.total_debt * 3 < data.enterprise_value and
     earnings_list_match_long(
