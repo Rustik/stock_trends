@@ -39,8 +39,7 @@ defmodule StockTrends.YahooApi do
       earnings_history_surprise_percent_current_qr: lookup_earnings_history(earnings_history, "-1q"),
       earnings_history_surprise_percent_minus_1_qr: lookup_earnings_history(earnings_history, "-2q"),
       earnings_history_surprise_percent_minus_2_qr: lookup_earnings_history(earnings_history, "-3q"),
-      earnings_history_surprise_percent_minus_3_qr: lookup_earnings_history(earnings_history, "-4q"),
-      industry_earnings_pe_ivv:                     21.51 # TODO pull real value from external source
+      earnings_history_surprise_percent_minus_3_qr: lookup_earnings_history(earnings_history, "-4q")
     }
   end
 

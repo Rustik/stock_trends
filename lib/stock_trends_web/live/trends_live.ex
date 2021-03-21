@@ -71,7 +71,7 @@ defmodule StockTrendsWeb.TrendsLive do
   end
 
   def handle_info(:update_puller_info, socket) do
-    IO.puts puller_running?()
+    IO.puts("puller running: #{ puller_running?() }")
     if puller_running?(), do: Process.send_after(self(), :update_puller_info, 1000)
 
     socket =
@@ -116,7 +116,8 @@ defmodule StockTrendsWeb.TrendsLive do
   end
 
   defp last_pull_info do
-    LinkPuller.info()
+    info = LinkPuller.info()
+    Map.drop(info, [:industry_earnings_pe_ivv])
   end
 
   defp check_data_and_run_puller do

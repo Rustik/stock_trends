@@ -20,7 +20,7 @@ defmodule StockTrends.Puller do
     |> CSV.decode!(separator: ?|, headers: true)
     |> on_csv_read()
     |> Flow.from_enumerable()
-    |> Flow.map(fn row -> TickerData.new(row["Symbol"]) end)
+    |> Flow.map(fn row -> TickerData.new(row["Symbol"], metrics()[:industry_earnings_pe_ivv]) end)
     |> Flow.partition()
     |> on_tickers_read()
   end
@@ -100,6 +100,10 @@ defmodule StockTrends.Puller do
     init_metrics()
     log("puller started")
     set_metric(:status, "started")
+    log("[ZacksApi] getting industry earnings rate..")
+    industry_earnings_rate = StockTrends.ZacksApi.get_industry_earnings()
+    log("Setting industry earnings rate value of #{ industry_earnings_rate }")
+    set_metric(:industry_earnings_pe_ivv, industry_earnings_rate)
   end
 
   def on_tickers_read(flow) do
@@ -124,14 +128,17 @@ defmodule StockTrends.Puller do
   defp log(message), do: IO.puts(message)
 
   defp get_yahoo_data(ticker) do
+    log("pull yahoo api for #{ ticker }..")
     StockTrends.YahooApi.pull_ticker(ticker)
   end
 
   defp get_zacks_rank(ticker) do
+    log("pull zacks api for #{ ticker }..")
     StockTrends.ZacksApi.get_rank(ticker)
   end
 
   defp get_gurufocus_score(ticker) do
+    log("pull gurufocus api for #{ ticker }..")
     StockTrends.GurufocusApi.get_score(ticker)
   end
 

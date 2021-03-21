@@ -19,6 +19,16 @@ defmodule StockTrends.TrendEvaluator.Guards do
     (e2 < 0 or (e2 < abs(e1) or e2 < abs(e3) or e2 < abs(e4))) and
     (e3 < 0 or (e3 < abs(e1) or e3 < abs(e2) or e3 < abs(e4))) and
     (e4 < 0 or (e4 < abs(e1) or e4 < abs(e2) or e4 < abs(e3)))
+
+  defguard good_zacks_rank_and_score(zacks_rank, zacks_score) when zacks_rank < 3 and (zacks_score == "A" or zacks_score == "B")
+
+  defguard average_zacks_rank_but_good_exp_growth_rate(zacks_rank, zacks_score, exp_growth) when
+    zacks_score == "C" and
+    zacks_rank == 3 and
+    exp_growth >= 15
+
+  defguard good_gurufocus_rank(strength, rank) when (strength + rank) >= 12
+
 end
 defmodule StockTrends.TrendEvaluator do
   import StockTrends.TrendEvaluator.Guards
@@ -39,10 +49,11 @@ defmodule StockTrends.TrendEvaluator do
       data.earnings_history_surprise_percent_minus_2_qr,
       data.earnings_history_surprise_percent_minus_3_qr
     ) and
-    data.zacks_rank <= 3 and
-    (data.zacks_style_scores == "A" or data.zacks_style_scores == "B" or data.zacks_style_scores == "C") and
-    not (data.zacks_rank == 3 and data.zacks_style_scores == "C") and
-    (data.gurufocus_financial_strength + data.gurufocus_profitability_rank) >= 12,
+    (
+      good_zacks_rank_and_score(data.zacks_rank, data.zacks_style_scores) or
+      average_zacks_rank_but_good_exp_growth_rate(data.zacks_rank, data.zacks_style_scores, data.earnings_exp_eps_growth_3_5yrs)
+    ) and
+    good_gurufocus_rank(data.gurufocus_financial_strength, data.gurufocus_profitability_rank),
     do: "long"
 
   def call(%TickerData{} = data) when
