@@ -65,6 +65,7 @@ defmodule StockTrends.Puller do
   def evaluate_trend(flow) do
     flow
     |> Flow.map(fn ticker_data ->
+      #log(ticker_data)
       _evaluate_trend(ticker_data)
       |> TickerData.set_trend(ticker_data)
     end)
