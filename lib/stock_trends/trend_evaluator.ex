@@ -31,13 +31,11 @@ defmodule StockTrends.TrendEvaluator.Guards do
   defguard good_zacks_rank_and_score(zacks_rank, zacks_score) when good_zacks_score(zacks_score) and good_zacks_rank(zacks_rank)
 
   defguard average_zacks_rank_but_good_exp_growth_rate(zacks_rank, zacks_score, exp_growth) when
+    (good_zacks_score(zacks_score) and average_zacks_rank(zacks_rank)) or
+    (average_zacks_score(zacks_score) and good_zacks_rank(zacks_rank)) or
     (
-      good_zacks_score(zacks_score) or
-      good_zacks_rank(zacks_rank) or
-      average_zacks_rank(zacks_rank) or
-      average_zacks_score(zacks_score)
-    ) and
-    exp_growth >= 15
+      average_zacks_score(zacks_score) and average_zacks_rank(zacks_rank) and exp_growth >= 15
+    )
 
   defguard good_gurufocus_rank(strength, rank) when (strength + rank) >= 12
 
