@@ -4,8 +4,12 @@ defmodule StockTrends.YahooApi do
     case request_quote_summary(ticker) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         parsed_result(body)
+      {:ok, %HTTPoison.Response{status_code: 502, body: body}} ->
+        pull_ticker(ticker)
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         "[YahooApi] Ticker not found"
+      {:error, %HTTPoison.Error{reason: "timeout"}} ->
+        pull_ticker(ticker)
       {:error, %HTTPoison.Error{reason: reason}} ->
         "[YahooApi] Error: #{reason}"
     end

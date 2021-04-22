@@ -38,6 +38,7 @@ defmodule StockTrends.TrendEvaluator.Guards do
     )
 
   defguard good_gurufocus_rank(strength, rank) when (strength + rank) >= 12
+  defguard average_gurufocus_rank(strength, rank) when (strength + rank) >= 11
 
 end
 defmodule StockTrends.TrendEvaluator do
@@ -63,7 +64,10 @@ defmodule StockTrends.TrendEvaluator do
       good_zacks_rank_and_score(data.zacks_rank, data.zacks_style_scores) or
       average_zacks_rank_but_good_exp_growth_rate(data.zacks_rank, data.zacks_style_scores, data.earnings_exp_eps_growth_3_5yrs)
     ) and
-    good_gurufocus_rank(data.gurufocus_financial_strength, data.gurufocus_profitability_rank),
+    (
+      good_gurufocus_rank(data.gurufocus_financial_strength, data.gurufocus_profitability_rank) or
+      average_gurufocus_rank(data.gurufocus_financial_strength, data.gurufocus_profitability_rank)
+    ),
     do: "long"
 
   def call(%TickerData{} = data) when
