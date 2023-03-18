@@ -1,0 +1,127 @@
+#trends {
+  @apply max-w-max mx-auto;
+
+  .wrapper {
+    @apply mb-7 align-middle inline-block min-w-full shadow overflow-hidden rounded-lg border-b border-gray-300;
+  }
+
+  a {
+    @apply underline text-indigo-500 font-semibold;
+  }
+
+  .fresh {
+    @apply px-4 py-2 rounded-md text-base font-medium leading-5 bg-green-200 text-green-800 rounded-full;
+  }
+
+  .eat-now {
+    @apply px-4 py-2 rounded-md text-base font-medium leading-5 bg-red-200 text-red-800 rounded-full;
+  }
+
+  table {
+    @apply min-w-full;
+
+    th {
+      @apply bg-transparent px-6 py-4 border-b border-gray-300 bg-indigo-700 text-base leading-4 font-medium uppercase tracking-wider text-center text-white;
+
+      a {
+        @apply no-underline text-white;
+      }
+    }
+
+    td {
+      @apply px-6 py-4 whitespace-nowrap border-b border-gray-300 text-lg leading-5 font-medium text-gray-900 text-center;
+    }
+
+    tbody {
+      @apply bg-white;
+    }
+
+    th.item {
+      @apply pl-12 text-left;
+    }
+
+    td.item {
+      @apply pl-12 font-semibold text-left;
+    }
+
+    td .id {
+      @apply text-gray-400 -ml-8 mr-4 text-base;
+    }
+  }
+
+  .footer {
+    @apply text-center bg-white max-w-4xl mx-auto text-lg py-8;
+
+    .pagination {
+      @apply inline-flex shadow-sm;
+    }
+
+    a {
+      @apply -ml-px inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-base leading-5 font-medium text-gray-600 no-underline;
+    }
+
+    a:hover {
+      @apply bg-gray-300;
+    }
+
+    a.active {
+      @apply bg-indigo-700 text-white;
+    }
+
+    a.previous {
+      @apply rounded-l-md;
+    }
+
+    a.next {
+      @apply rounded-r-md;
+    }
+  }
+
+  form {
+    @apply max-w-xl mx-auto mb-4;
+
+    .filters {
+      @apply flex items-baseline justify-around;
+
+      select {
+        @apply appearance-none w-1/3 bg-gray-200 border border-gray-400 text-gray-700 py-3 px-4 rounded-lg leading-tight font-semibold cursor-pointer;
+      }
+
+      select:focus {
+        @apply outline-none bg-gray-200 border-gray-500;
+      }
+
+      .prices {
+        @apply flex;
+
+        input[type="checkbox"] {
+          @apply opacity-0 fixed w-0;
+        }
+
+        input[type="checkbox"]:checked + label {
+          @apply bg-indigo-300 border-indigo-500;
+        }
+
+        label {
+          @apply inline-block border-t border-b border-gray-400 bg-gray-300 py-3 px-4 text-lg font-semibold leading-5;
+        }
+
+        label:hover {
+          @apply bg-gray-400 cursor-pointer;
+        }
+
+        label:first-of-type {
+          @apply border-l border-r rounded-l-lg;
+        }
+
+        label:last-of-type {
+          @apply border-l border-r rounded-r-lg;
+        }
+      }
+
+      a {
+        @apply inline underline text-lg;
+      }
+    }
+  }
+}

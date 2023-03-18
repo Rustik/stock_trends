@@ -1,0 +1,196 @@
+<div id="trends">
+  <form phx-change="filter">
+    <div class="filters">
+      <select name="type">
+        <%= options_for_select(type_options(), @type) %>
+      </select>
+    </div>
+  </form>
+
+  <div class="wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>
+            <%= "Длится дней" %>
+          </th>
+          <th class="item">
+            <%= sort_link(@socket, "Ticker", :ticker, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Trailing PE", :trailing_pe, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Forward PE", :forward_pe, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Price/Sales(ttm)", :price_sales_ttm, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "IVV(iShares-SP500)", :industry_earnings_pe_ivv, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Zacks rank", :zacks_rank, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Zacks score", :zacks_style_scores, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Gurufocus Str.", :gurufocus_financial_strength, @options) %>
+          </th>
+          <th>
+            <%= sort_link(@socket, "Gurufocus Profit.", :gurufocus_profitability_rank, @options) %>
+          </th>
+          <th colspan=4s>
+            Earnings surpise (от старых к новым)
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for trend <- @trends do %>
+          <tr>
+            <td>
+              <%= trend.lasts %>
+            </td>
+            <td class="item">
+              <%= trend.ticker %>
+            </td>
+            <td>
+              <%= trend.trailing_pe %>
+            </td>
+            <td>
+              <%= trend.forward_pe %>
+            </td>
+            <td>
+              <%= trend.price_sales_ttm %>
+            </td>
+            <td>
+              <%= trend.industry_earnings_pe_ivv %>
+            </td>
+            <td>
+              <%= trend.zacks_rank %>
+            </td>
+            <td>
+              <%= trend.zacks_style_scores %>
+            </td>
+            <td>
+              <%= trend.gurufocus_financial_strength %>
+            </td>
+            <td>
+              <%= trend.gurufocus_profitability_rank %>
+            </td>
+            <td>
+              <%= if trend.earnings_history_surprise_percent_minus_3_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_3_qr * 100, precision: 2) %>
+              <% end %>
+            </td>
+            <td>
+              <%= if trend.earnings_history_surprise_percent_minus_2_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_2_qr * 100, precision: 2) %>
+              <% end %>
+            </td>
+            <td>
+              <%= if trend.earnings_history_surprise_percent_minus_1_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_minus_1_qr * 100, precision: 2) %>
+              <% end %>
+            </td>
+            <td>
+              <%= if trend.earnings_history_surprise_percent_current_qr do %>
+                <%= Number.Percentage.number_to_percentage(trend.earnings_history_surprise_percent_current_qr * 100, precision: 2) %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <div class="footer">
+      <div>Обновлено <%= @updated_at %></div>
+      <%= if @options.pages_count > 1 do %>
+        <div class="pagination">
+          <%= if @options.page > 1 do %>
+            <%= pagination_link(@socket,
+                                "Назад",
+                                @options.page - 1,
+                                @options,
+                                "назад") %>
+          <% end %>
+          <%= for i <- (@options.page - 2)..(@options.pages_count), i > 0 do %>
+            <%= pagination_link(@socket,
+                                  i,
+                                  i,
+                                  @options,
+                                  (if i == @options.page, do: "active")) %>
+          <% end %>
+          <%= if @options.pages_count > @options.page do %>
+            <%= pagination_link(@socket,
+                                "Вперед",
+                                @options.page + 1,
+                                @options,
+                                "вперед") %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+
+<!-- This example requires Tailwind CSS v2.0+ -->
+<div class="fixed z-10 inset-0 overflow-y-auto <%= if @last_pull_info[:status] == "started", do: nil, else: "hidden" %>">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!--
+      Background overlay, show/hide based on modal state.
+
+      Entering: "ease-out duration-300"
+        From: "opacity-0"
+        To: "opacity-100"
+      Leaving: "ease-in duration-200"
+        From: "opacity-100"
+        To: "opacity-0"
+    -->
+    <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+      <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+    </div>
+
+    <!-- This element is to trick the browser into centering the modal contents. -->
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <!--
+      Modal panel, show/hide based on modal state.
+
+      Entering: "ease-out duration-300"
+        From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        To: "opacity-100 translate-y-0 sm:scale-100"
+      Leaving: "ease-in duration-200"
+        From: "opacity-100 translate-y-0 sm:scale-100"
+        To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+    -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+
+            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <h3 class="text-2xl leading-6 font-medium text-gray-900 my-2" id="modal-headline">
+              Идет поиск трендов..
+            </h3>
+            <div class="mt-2">
+              <p class="text-lg text-gray-500">
+                Ищем сегодняшние тренды по всем акциям торгующимся на NASDAQ и NYSE. Этот процесс в среднем занимает около 5 минут и происходит раз в сутки. Пожалуйста подождите, либо заходите попозже.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse mb-8">
+        <div class="shadow w-full bg-grey-light">
+          <div class="bg-green-600 text-xl rounded-lg leading-none py-1 text-center text-white" style="width: <%= if @last_pull_info[:status] == "started", do: @last_pull_info[:processed_percent], else: 0 %>%"><%= if @last_pull_info[:status] == "started", do: @last_pull_info[:processed_percent], else: 0 %>%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
