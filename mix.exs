@@ -56,7 +56,8 @@ defmodule StockTrends.MixProject do
       {:number, "~> 1.0.3"},
       {:retry, "~> 0.17.0"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+      {:dart_sass, "~> 0.5.1", runtime: Mix.env() == :dev}
     ]
   end
 
@@ -73,8 +74,8 @@ defmodule StockTrends.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind default", "esbuild default"],
-      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+      "assets.build": ["sass default tailwind default", "esbuild default"],
+      "assets.deploy": ["sass default", "tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
   end
 end

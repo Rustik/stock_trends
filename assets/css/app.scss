@@ -1,8 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 #trends {
   @apply max-w-max mx-auto;
 
   .wrapper {
-    @apply mb-7 align-middle inline-block min-w-full shadow overflow-hidden rounded-lg border-b border-gray-300;
+    @apply mb-7 align-middle inline-block min-w-full shadow overflow-hidden rounded-lg border-b border-cool-gray-300;
   }
 
   a {
@@ -21,7 +25,7 @@
     @apply min-w-full;
 
     th {
-      @apply bg-transparent px-6 py-4 border-b border-gray-300 bg-indigo-700 text-base leading-4 font-medium uppercase tracking-wider text-center text-white;
+      @apply bg-transparent px-6 py-4 border-b border-cool-gray-300 bg-indigo-700 text-base leading-4 font-medium uppercase tracking-wider text-center text-white;
 
       a {
         @apply no-underline text-white;
@@ -29,7 +33,7 @@
     }
 
     td {
-      @apply px-6 py-4 whitespace-nowrap border-b border-gray-300 text-lg leading-5 font-medium text-gray-900 text-center;
+      @apply px-6 py-4 whitespace-nowrap border-b border-cool-gray-300 text-lg leading-5 font-medium text-gray-900 text-center;
     }
 
     tbody {
@@ -57,7 +61,7 @@
     }
 
     a {
-      @apply -ml-px inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-base leading-5 font-medium text-gray-600 no-underline;
+      @apply -ml-px inline-flex items-center px-3 py-2 border border-cool-gray-300 bg-white text-base leading-5 font-medium text-gray-600 no-underline;
     }
 
     a:hover {
@@ -124,4 +128,38 @@
       }
     }
   }
+}
+
+/* Alerts and form errors */
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.alert-info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+.alert-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+.alert-danger {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+.alert p {
+  margin-bottom: 0;
+}
+.alert:empty {
+  display: none;
+}
+.invalid-feedback {
+  color: #a94442;
+  display: block;
+  margin: -1rem 0 2rem;
 }
