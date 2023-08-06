@@ -32,7 +32,7 @@ defmodule StockTrends.ZacksApi do
 
   defp request_industry_earnings_with_retry() do
     retry_while with: linear_backoff(10, 1) |> take(15) do
-      request_industry_rank
+      request_industry_rank()
       |> case do
         result = {:ok, %HTTPoison.Response{status_code: 200}} -> {:halt, result}
         result -> {:cont, result}
@@ -68,7 +68,7 @@ defmodule StockTrends.ZacksApi do
   end
 
   defp request(url) do
-    HTTPoison.get(url, ["Referer": "https://www.zacks.com", "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"])
+    HTTPoison.get(url, ["Referer": "https://www.zacks.com", "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"], hackney: [cookie: "incap_ses_130_2944342=5WO5bTBT7x0dTNoIUtrNAeGJtmQAAAAAnSmkk2zliCS5sFXNW7hqMQ==; visid_incap_2944342=2yTjz5SZRYaN+AC9agQd5eGJtmQAAAAAQUIPAAAAAAAEgOTjJ7Titia2CAgQtNfL"])
   end
 
   defp parsed_result(body) do
@@ -77,7 +77,7 @@ defmodule StockTrends.ZacksApi do
 
   defp parsed_industry_earnings(body) do
     #Regex.run(~r/todo:add regex here/, body)
-    17.13
+    18.52
   end
 
   defp find_rank(body) do

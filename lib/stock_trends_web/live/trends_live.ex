@@ -121,7 +121,7 @@ defmodule StockTrendsWeb.TrendsLive do
   end
 
   defp check_data_and_run_puller do
-    if no_data_for_today?() and not puller_running?(), do: pull, else: nil
+    if no_data_for_today?() and not puller_running?(), do: pull(), else: nil
   end
 
   defp no_data_for_today? do

@@ -25,7 +25,7 @@ defmodule StockTrends.YahooApi do
 
   defp request_quote_summary(ticker) do
     ticker_url(ticker)
-    |> HTTPoison.get
+    |> HTTPoison.get(%{}, hackney: [cookie: "A1S=d=AQABBFi28WECED14JCIjx3bBqlX9-MUhzWYFEgABCAFipWTOZOi6H5kB9qMAAAcION7XXzEkm4kID2fb90eFnxXemuFMH7lOuAkBBwoBGw&S=AQAAAmnOlunQWuSidVYVq2hTmxk&j=US; A3=d=AQABBFi28WECED14JCIjx3bBqlX9-MUhzWYFEgABCAFipWTOZOi6H5kB9qMAAAcION7XXzEkm4kID2fb90eFnxXemuFMH7lOuAkBBwoBGw&S=AQAAAmnOlunQWuSidVYVq2hTmxk; A1=d=AQABBFi28WECED14JCIjx3bBqlX9-MUhzWYFEgABCAFipWTOZOi6H5kB9qMAAAcION7XXzEkm4kID2fb90eFnxXemuFMH7lOuAkBBwoBGw&S=AQAAAmnOlunQWuSidVYVq2hTmxk"])
   end
 
   defp parsed_result(body) do
@@ -89,6 +89,6 @@ defmodule StockTrends.YahooApi do
   defp get_raw_data(%{}), do: nil
 
   defp ticker_url(ticker) do
-    "https://query#{:rand.uniform(2)}.finance.yahoo.com/v10/finance/quoteSummary/#{ticker}?modules=summaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CearningsHistory"
+    "https://query#{:rand.uniform(2)}.finance.yahoo.com/v10/finance/quoteSummary/#{ticker}?modules=summaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CearningsHistory&crumb=QwohYeLthmq"
   end
 end
