@@ -77,7 +77,7 @@ defmodule StockTrends.ZacksApi do
 
   defp parsed_industry_earnings(body) do
     #Regex.run(~r/todo:add regex here/, body)
-    18.52
+    16.89
   end
 
   defp find_rank(body) do
