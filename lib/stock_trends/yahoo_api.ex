@@ -25,7 +25,7 @@ defmodule StockTrends.YahooApi do
 
   defp request_quote_summary(ticker) do
     ticker_url(ticker)
-    |> HTTPoison.get(%{}, hackney: [cookie: "A1S=d=AQABBFi28WECED14JCIjx3bBqlX9-MUhzWYFEgABCAFipWTOZOi6H5kB9qMAAAcION7XXzEkm4kID2fb90eFnxXemuFMH7lOuAkBBwoBGw&S=AQAAAmnOlunQWuSidVYVq2hTmxk&j=US; A3=d=AQABBFi28WECED14JCIjx3bBqlX9-MUhzWYFEgABCAFipWTOZOi6H5kB9qMAAAcION7XXzEkm4kID2fb90eFnxXemuFMH7lOuAkBBwoBGw&S=AQAAAmnOlunQWuSidVYVq2hTmxk; A1=d=AQABBFi28WECED14JCIjx3bBqlX9-MUhzWYFEgABCAFipWTOZOi6H5kB9qMAAAcION7XXzEkm4kID2fb90eFnxXemuFMH7lOuAkBBwoBGw&S=AQAAAmnOlunQWuSidVYVq2hTmxk"])
+    |> HTTPoison.get(%{}, hackney: [cookie: "GUCS=AViGPulN; GUC=AQABCAFllahlx0IgfAR9&s=AQAAAAOTb0N2&g=ZZRapg; A1=d=AQABBIO3s2QCEI55_qD5fJc1uRyNu0xDqvoFEgABCAGolWXHZei6H5kB9qMAAAcIg7ezZExDqvo&S=AQAAAlvqVssKj79FHAgU2YoMsII; A3=d=AQABBIO3s2QCEI55_qD5fJc1uRyNu0xDqvoFEgABCAGolWXHZei6H5kB9qMAAAcIg7ezZExDqvo&S=AQAAAlvqVssKj79FHAgU2YoMsII; A1S=d=AQABBIO3s2QCEI55_qD5fJc1uRyNu0xDqvoFEgABCAGolWXHZei6H5kB9qMAAAcIg7ezZExDqvo&S=AQAAAlvqVssKj79FHAgU2YoMsII; cmp=t=1704221342&j=1&u=1---&v=103; EuConsent=CPvQekAPvQekAAOACBENDfCoAP_AAEfAACiQJhNB9G7WTXNncXp-YPs0OYUX0VBJ4MAwBgCBAcABzBIUIAwGRmAzJEyIICgCGAIAIGJBIABtGAlAQEAQYIAFAAFIAEEAJBAAIGAAECAAAABACAAAAAAAAAAQgUAXMBQgkAZEAFoIQUhAlgAgAQAAIAAEIIhBAgQAEAAAQABICAAIgCgAAgAAAAAAAAAEAFAIEQAAAAECBo9kfQTBABINSogCbAgJCYQMIoUQIgoCACgQAAAAECAAAAmCAoQBgEiMBkAIEQABAAAAAAQEQCAAACABCAAIAgwQAAAAAQAAAAQCAAAEAAAAAAAAAAAAAAAAAAAAAAAgAIAAhBAACAACAAgoAAIABAAAAAAAAIARCAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAQIAAAAAAACAgILADDQAYAAiCgIgAwABEFAVABgACIKA;"])
   end
 
   defp parsed_result(body) do
@@ -72,11 +72,14 @@ defmodule StockTrends.YahooApi do
   end
 
   defp lookup_earnings_history(earnings_history, period) do
+    #IO.inspect(earnings_history["history"])
     earnings_history["history"]
-    |> Enum.find(earnings_history, fn h -> earnings_history_match?(h, period) end)
-    |> Map.fetch!("surprisePercent")
-    |> get_raw_data
+    |> Enum.find(fn h -> earnings_history_match?(h, period) end)
+    |> get_value_from_result
   end
+
+  defp get_value_from_result(nil), do: nil
+  defp get_value_from_result(%{ "surprisePercent" => result }), do: get_raw_data(result)
 
   defp earnings_history_match?(%{ "period" => period }, match_period), do: period == match_period
 
@@ -89,6 +92,6 @@ defmodule StockTrends.YahooApi do
   defp get_raw_data(%{}), do: nil
 
   defp ticker_url(ticker) do
-    "https://query#{:rand.uniform(2)}.finance.yahoo.com/v10/finance/quoteSummary/#{ticker}?modules=summaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CearningsHistory&crumb=QwohYeLthmq"
+    "https://query#{:rand.uniform(2)}.finance.yahoo.com/v10/finance/quoteSummary/#{ticker}?modules=summaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CearningsHistory&crumb=.twOtouHgjS"
   end
 end
